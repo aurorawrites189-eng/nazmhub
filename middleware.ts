@@ -84,7 +84,7 @@ export default async function middleware(request: NextRequest) {
   // Paths that are NOT part of the localized [lang] tree and must pass
   // through untouched (no rewrite): the sitemap, robots.txt, and the
   // temporary diagnostic route at app/api/debug-auth.
-  const passthroughPaths = ["/sitemap.xml", "/robots.txt", "/api/debug-auth"];
+  const passthroughPaths = ["/sitemap.xml", "/robots.txt", "/api/debug-auth", "/google4429303ec3cb35cd.html"];
   if (passthroughPaths.some((p) => pathname === p || pathname.startsWith(`${p}/`))) {
     return sessionResponse;
   }
