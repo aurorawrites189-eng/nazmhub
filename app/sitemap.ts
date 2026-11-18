@@ -3,9 +3,10 @@ import { SITE } from "@/lib/site-config";
 import { createClient } from "@/lib/supabase/server";
 
 export const runtime = "edge";
-// Sitemap reflects database content, so it must run at request time
-// (revalidated hourly) instead of being frozen at build time.
-export const dynamic = "force-dynamic";
+// Sitemap reflects database content: cached for 1 hour (revalidate 3600)
+// instead of regenerating on every request. The old force-dynamic setting
+// made every fetch hit the database (~8s, N+1 queries), so Google could
+// not read the sitemap ("Couldn't fetch" in Search Console since Nov 7).
 export const revalidate = 3600;
 
 /**
