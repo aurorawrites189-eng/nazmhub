@@ -11,13 +11,11 @@
  * via POST /api/posts/[id]/views — see that route for inflation caveats.
  */
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { getDictionary } from "@/lib/i18n/get-dictionary";
 import type { Locale } from "@/lib/site-config";
 import { fillTemplate } from "@/lib/format";
-import { Button } from "@/components/ui/Button";
 import { LikeButton } from "@/components/LikeButton";
 import { SaveButton } from "@/components/SaveButton";
 import { FollowButton } from "@/components/FollowButton";
@@ -27,27 +25,6 @@ import { ViewCounter } from "@/components/ViewCounter";
 
 interface PageParams {
   params: Promise<{ lang: string; id: string }>;
-}
-
-/**
- * Teaser for logged-out readers: first ~80 words of the story.
- * Post content is plain text, so word-splitting is safe.
- */
-function teaserParagraphs(content: string, maxWords = 80): string[] {
-  const paras = String(content).split(/\n{2,}/);
-  const out: string[] = [];
-  let words = 0;
-  for (const para of paras) {
-    const w = para.split(/\s+/).filter(Boolean);
-    if (out.length > 0 && words + w.length > maxWords) break;
-    if (words + w.length > maxWords) {
-      out.push(w.slice(0, Math.max(1, maxWords - words)).join(" ") + "…");
-      break;
-    }
-    out.push(para);
-    words += w.length;
-  }
-  return out.length > 0 ? out : paras.slice(0, 1);
 }
 
 async function loadPost(id: string) {
@@ -105,11 +82,10 @@ export default async function PostReaderPage({ params: _params }: PageParams) {
   const isOwnPost = !!user && !!author && user.id === author.id;
   const canComment = !!user && !isChild;
 
-  // Logged-out readers see only a teaser; the full story needs a free account.
-  const showTeaser = !user;
-  const bodyParagraphs = showTeaser
-    ? teaserParagraphs(post.content)
-    : String(post.content).split(/\n{2,}/);
+  // Reading is free for everyone — logged-out readers and search engines
+  // see the full story. Login is only needed to interact (like, save,
+  // follow, comment).
+  const bodyParagraphs = String(post.content).split(/\n{2,}/);
 
   const imageUrls = (images ?? []).map((img: { id: string; storage_path: string; alt_text: string | null; caption: string | null }) => ({
     ...img,
@@ -192,29 +168,6 @@ export default async function PostReaderPage({ params: _params }: PageParams) {
           </p>
         ))}
       </div>
-
-      {showTeaser && (
-        <div className="mt-8 rounded-2xl border-2 border-dashed border-emerald-300 bg-emerald-50 p-8 text-center dark:border-emerald-800 dark:bg-emerald-950/40">
-          <p className="text-3xl" aria-hidden>
-            🔒
-          </p>
-          <h2 className="mt-2 text-xl font-bold">{dict.reader.teaserTitle}</h2>
-          <p className="mx-auto mt-2 max-w-md text-neutral-600 dark:text-neutral-300">
-            {dict.reader.teaserBody}
-          </p>
-          <div className="mt-4 flex flex-wrap items-center justify-center gap-3">
-            <Link href={`/${lang}/signup`}>
-              <Button>{dict.reader.teaserSignup}</Button>
-            </Link>
-            <Link
-              href={`/${lang}/login`}
-              className="text-sm font-medium text-emerald-700 underline dark:text-emerald-400"
-            >
-              {dict.reader.teaserLogin}
-            </Link>
-          </div>
-        </div>
-      )}
 
       {Array.isArray(post.tags) && post.tags.length > 0 && (
         <div className="mt-6 flex flex-wrap items-center gap-2">
