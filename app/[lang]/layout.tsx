@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import { SITE, type Locale } from "@/lib/site-config";
+import { createClient } from "@/lib/supabase/server";
 import { getDictionary } from "@/lib/i18n/get-dictionary";
 import { isLocale, localeDirections } from "@/lib/i18n/config";
 import { LanguageProvider } from "@/lib/i18n/LanguageProvider";
@@ -28,6 +29,36 @@ export async function generateMetadata({
   const hdrs = await headers();
   const cleanPath = hdrs.get("x-nazmhub-path") || "/";
   const pageUrl = cleanPath === "/" ? base : `${base}${cleanPath}`;
+  // Canonical strategy (Nov 21, 2026): /posts/<id> is the canonical home
+  // for every story. Duplicate views of the same story canonical to it so
+  // Google does not treat them as separate thin/duplicate pages:
+  //   /kids/story/<id> -> /posts/<id> (same uuid, string transform)
+  //   /series/<id>/<n> -> /posts/<episode post id> (DB lookup below)
+  // Every other page keeps its self-referencing canonical (pageUrl).
+  let canonicalUrl = pageUrl;
+  const kidsMatch = cleanPath.match(/^\/kids\/story\/([^/]+)$/);
+  if (kidsMatch) {
+    canonicalUrl = `${base}/posts/${kidsMatch[1]}`;
+  } else {
+    const epMatch = cleanPath.match(/^\/series\/([^/]+)\/(\d+)$/);
+    if (epMatch) {
+      try {
+        const supabase = await createClient();
+        const { data: ep } = await supabase
+          .from("posts")
+          .select("id")
+          .eq("series_id", epMatch[1])
+          .eq("episode_number", Number(epMatch[2]))
+          .eq("status", "published")
+          .maybeSingle();
+        if (ep && typeof ep.id === "string" && ep.id) {
+          canonicalUrl = `${base}/posts/${ep.id}`;
+        }
+      } catch {
+        // Keep the self-referencing canonical on lookup failure.
+      }
+    }
+  }
   // Unique title + description per page. Every page used to share the same
   // title ("NazmHub — Write. Read. Belong."), so Google showed the same
   // snippet for all of them. The clean path comes from the
@@ -101,7 +132,7 @@ export async function generateMetadata({
     },
     description,
     alternates: {
-      canonical: pageUrl,
+      canonical: canonicalUrl,
     },
     openGraph: {
       type: "website",
