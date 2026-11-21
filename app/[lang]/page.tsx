@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { SITE } from "@/lib/site-config";
 import { getDictionary } from "@/lib/i18n/get-dictionary";
 import { isLocale } from "@/lib/i18n/config";
+import { createClient } from "@/lib/supabase/server";
 import { Button } from "@/components/ui/Button";
 
 export default async function HomePage({ params: _params }: { params: Promise<{ lang: string }> }) {
@@ -10,6 +11,24 @@ export default async function HomePage({ params: _params }: { params: Promise<{ 
   if (!isLocale(params.lang)) notFound();
   const lang = params.lang;
   const dict = await getDictionary(lang);
+
+  // Latest stories — fetched server-side so the links are in the raw HTML
+  // (Google discovers pages by following links; the client-side feed alone
+  // leaves the homepage with zero story links).
+  let latest: { id: string; title: string; language: string }[] = [];
+  try {
+    const supabase = await createClient();
+    const { data } = await supabase
+      .from("posts")
+      .select("id, title, language")
+      .eq("status", "published")
+      .eq("visibility", "public")
+      .order("published_at", { ascending: false })
+      .limit(12);
+    latest = (data ?? []) as { id: string; title: string; language: string }[];
+  } catch {
+    latest = [];
+  }
 
   return (
     <div className="mx-auto max-w-6xl px-4">
@@ -38,6 +57,36 @@ export default async function HomePage({ params: _params }: { params: Promise<{ 
           {dict.hero.kidsNote}
         </p>
       </section>
+
+      {/* Latest stories — server-rendered links to /posts/<id> */}
+      {latest.length > 0 && (
+        <section className="pb-20">
+          <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
+            <div>
+              <h2 className="text-2xl font-extrabold">{dict.feed.title}</h2>
+              <p className="mt-1 text-neutral-600 dark:text-neutral-300">{dict.feed.subtitle}</p>
+            </div>
+            <Link href={`/feed`}>
+              <Button variant="secondary">{dict.nav.explore}</Button>
+            </Link>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {latest.map((post) => (
+              <Link
+                key={post.id}
+                href={`/posts/${post.id}`}
+                lang={post.language === "ur" ? "ur" : "en"}
+                className="rounded-2xl border border-neutral-200 p-5 hover:border-emerald-600 dark:border-neutral-800 dark:hover:border-emerald-400"
+              >
+                <h3 className="font-semibold">{post.title}</h3>
+                <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
+                  {post.language === "ur" ? "اردو" : "English"}
+                </p>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Value props */}
       <section className="grid gap-4 pb-20 sm:grid-cols-3">
