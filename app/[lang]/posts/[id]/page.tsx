@@ -14,7 +14,8 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { getDictionary } from "@/lib/i18n/get-dictionary";
-import type { Locale } from "@/lib/site-config";
+import { SITE, type Locale } from "@/lib/site-config";
+import { articleJsonLd, excerpt, langCode } from "@/lib/seo";
 import { fillTemplate } from "@/lib/format";
 import { LikeButton } from "@/components/LikeButton";
 import { SaveButton } from "@/components/SaveButton";
@@ -36,7 +37,17 @@ async function loadPost(id: string) {
 export async function generateMetadata({ params: _params }: PageParams): Promise<Metadata> {
   const params = await _params;
   const { post } = await loadPost(params.id);
-  return { title: post?.title ?? "Story" };
+  if (!post) return { title: "Story" };
+  const title = post.title ?? "Story";
+  // Per-page description from the story itself (was the generic
+  // "Read this story on NazmHub." for every post).
+  const description = excerpt(post.content);
+  return {
+    title,
+    description,
+    openGraph: { type: "article", title, description },
+    twitter: { card: "summary_large_image", title, description },
+  };
 }
 
 export default async function PostReaderPage({ params: _params }: PageParams) {
@@ -94,8 +105,21 @@ export default async function PostReaderPage({ params: _params }: PageParams) {
 
   const publishedDate = post.published_at ? new Date(post.published_at).toLocaleDateString(lang) : null;
 
+  // Article structured data — headline, author, publish date, language.
+  const base = SITE.url.replace(/\/$/, "");
+  const jsonLd = articleJsonLd({
+    headline: post.title,
+    description: excerpt(post.content),
+    url: `${base}/posts/${post.id}`,
+    authorName: author?.display_name ?? author?.username ?? null,
+    datePublished: post.published_at ?? post.created_at ?? null,
+    inLanguage: langCode(post.language),
+  });
+
   return (
-    <article className="mx-auto max-w-3xl px-4 py-8">
+    <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <article className="mx-auto max-w-3xl px-4 py-8">
       <ViewCounter postId={post.id} lang={lang} />
 
       <header>
@@ -207,6 +231,7 @@ export default async function PostReaderPage({ params: _params }: PageParams) {
         signedIn={!!user}
         isChild={isChild}
       />
-    </article>
+      </article>
+    </>
   );
 }
