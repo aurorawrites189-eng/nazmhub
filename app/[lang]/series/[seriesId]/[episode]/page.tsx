@@ -60,11 +60,21 @@ export async function generateMetadata({
   // "Cliffhangers — Serial Story · NazmHub" for every episode).
   const title = `${episode.title} — ${series.title} Episode ${epNum}`;
   const description = excerpt(episode.content);
+  const coverPath =
+    (episode as { post_images?: { storage_path: string }[] | null }).post_images?.[0]
+      ?.storage_path ?? null;
+  const coverUrl = coverPath ? publicStorageUrl("post-images", coverPath) : null;
+  const images = coverUrl ? [{ url: coverUrl }] : undefined;
   return {
     title,
     description,
-    openGraph: { type: "article", title, description },
-    twitter: { card: "summary_large_image", title, description },
+    openGraph: { type: "article", title, description, ...(images ? { images } : {}) },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      ...(coverUrl ? { images: [coverUrl] } : {}),
+    },
   };
 }
 
@@ -122,6 +132,7 @@ export default async function EpisodePage({
       : null,
     datePublished: episode.published_at,
     inLanguage: langCode(episode.language),
+    image: cover ? publicStorageUrl("post-images", cover) : null,
   });
 
   const t = dict.series as Record<string, string>;

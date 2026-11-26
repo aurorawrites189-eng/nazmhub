@@ -15,9 +15,12 @@ export interface ReaderStory {
   title: string;
   content: string;
   language: string;
+  category: string | null;
   categoryName: string | null;
   authorName: string | null;
   cover: { storage_path: string; alt_text: string | null } | null;
+  /** Two more stories in the same category + language, linked at the end. */
+  related: { id: string; title: string; language: string }[];
 }
 
 interface ReaderLabels {
@@ -147,10 +150,13 @@ export function KidsStoryReader({
         className="rounded-3xl border-2 border-violet-200 bg-white p-6 shadow-sm sm:p-10 dark:border-violet-800/40 dark:bg-neutral-900"
       >
         <div className="mb-4 flex flex-wrap gap-2">
-          {story.categoryName && (
-            <span className="rounded-full bg-violet-100 px-4 py-1 text-sm font-bold text-violet-800 dark:bg-violet-900/40 dark:text-violet-200">
+          {story.categoryName && story.category && (
+            <Link
+              href={`/kids/${story.category}`}
+              className="rounded-full bg-violet-100 px-4 py-1 text-sm font-bold text-violet-800 transition hover:bg-violet-200 dark:bg-violet-900/40 dark:text-violet-200 dark:hover:bg-violet-900/60"
+            >
               {story.categoryName}
-            </span>
+            </Link>
           )}
           <span className="rounded-full bg-amber-100 px-4 py-1 text-sm font-bold text-amber-800 dark:bg-amber-900/40 dark:text-amber-200">
             {story.language === "ur" ? "اردو" : "English"}
@@ -184,7 +190,7 @@ export function KidsStoryReader({
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={turn.img}
-                  alt={`${turn.speaker}`}
+                  alt={`${turn.speaker} — ${story.title}`}
                   className="aspect-[4/3] w-full object-cover"
                   loading={i === 0 ? "eager" : "lazy"}
                 />
@@ -205,6 +211,39 @@ export function KidsStoryReader({
           </div>
         )}
       </article>
+
+      {story.related.length > 0 && (
+        <section className="mt-10">
+          <h2 className="text-2xl font-extrabold text-neutral-900 dark:text-white">
+            {lang === "ur" ? "مزید کہانیاں" : "More stories"}
+          </h2>
+          <ul className="mt-4 space-y-3">
+            {story.related.map((r) => (
+              <li key={r.id}>
+                <Link
+                  href={`/kids/story/${r.id}`}
+                  lang={r.language}
+                  className="block rounded-2xl border-2 border-violet-200 bg-white p-4 font-bold text-neutral-900 transition hover:-translate-y-0.5 hover:shadow-md dark:border-violet-800/50 dark:bg-neutral-900 dark:text-white"
+                >
+                  {r.title}
+                </Link>
+              </li>
+            ))}
+          </ul>
+          {story.category && story.categoryName && (
+            <p className="mt-4">
+              <Link
+                href={`/kids/${story.category}`}
+                className="text-sm font-bold text-violet-700 hover:underline dark:text-violet-300"
+              >
+                {lang === "ur"
+                  ? `تمام ${story.categoryName} کہانیاں دیکھیں ←`
+                  : `See all ${story.categoryName} stories →`}
+              </Link>
+            </p>
+          )}
+        </section>
+      )}
 
       <div className="mt-6">
         <KidsReportButton

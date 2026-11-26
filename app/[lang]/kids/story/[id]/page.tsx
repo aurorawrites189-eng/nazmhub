@@ -27,18 +27,44 @@ export async function generateMetadata({
   params: Promise<{ lang: string; id: string }>;
 }): Promise<Metadata> {
   const params = await _params;
-  const { post } = await loadKidsPost(params.id);
+  const { supabase, post } = await loadKidsPost(params.id);
   if (!post) return { title: "Kids Story" };
   // Per-page title + description from the story itself (was the generic
   // "Kids Story · NazmHub" for every kids story). The title stays in the
-  // story's own language — no translation.
-  const title = (post.title as string) ?? "Kids Story";
+  // story's own language — no translation — with the category and language
+  // appended so twins and categories are distinguishable in search.
+  const baseTitle = (post.title as string) ?? "Kids Story";
+  const langName = langCode(post.language as string | null) === "ur" ? "Urdu" : "English";
+  const { data: cat } = post.category
+    ? await supabase
+        .from("categories")
+        .select("name_en")
+        .eq("slug", post.category as string)
+        .maybeSingle()
+    : { data: null };
+  const catName = (cat as { name_en: string } | null)?.name_en ?? null;
+  const title = catName
+    ? `${baseTitle} — ${catName} Story for Kids in ${langName}`
+    : baseTitle;
   const description = excerpt(post.content as string);
+  const cover = (
+    (post as { post_images?: { storage_path: string; alt_text: string | null }[] | null })
+      .post_images?.[0] as { storage_path: string; alt_text: string | null } | undefined
+  ) ?? null;
+  const coverUrl = cover
+    ? supabase.storage.from("post-images").getPublicUrl(cover.storage_path).data.publicUrl
+    : null;
+  const images = coverUrl ? [{ url: coverUrl }] : undefined;
   return {
     title,
     description,
-    openGraph: { type: "article", title, description },
-    twitter: { card: "summary_large_image", title, description },
+    openGraph: { type: "article", title, description, ...(images ? { images } : {}) },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      ...(coverUrl ? { images: [coverUrl] } : {}),
+    },
   };
 }
 
@@ -72,9 +98,30 @@ export default async function KidsStoryPage({
     .eq("id", post.author_id as string)
     .maybeSingle();
 
+  // Two more stories in the same category + language, linked at the end
+  // of the reader.
+  const { data: relatedRows } = await supabase
+    .from("posts")
+    .select("id, title, language")
+    .eq("status", "published")
+    .eq("is_kids_approved", true)
+    .eq("category", post.category as string)
+    .eq("language", post.language as string)
+    .neq("id", post.id as string)
+    .order("published_at", { ascending: false })
+    .limit(2);
+  const related = (relatedRows ?? []) as { id: string; title: string; language: string }[];
+
   // Article structured data. The canonical home of a kids story is its
   // /posts/<id> URL, so mainEntityOfPage points there.
   const base = SITE.url.replace(/\/$/, "");
+  const cover = (
+    (post as { post_images?: { storage_path: string; alt_text: string | null }[] | null })
+      .post_images?.[0] as { storage_path: string; alt_text: string | null } | undefined
+  ) ?? null;
+  const coverUrl = cover
+    ? supabase.storage.from("post-images").getPublicUrl(cover.storage_path).data.publicUrl
+    : null;
   const jsonLd = articleJsonLd({
     headline: post.title as string,
     description: excerpt(post.content as string),
@@ -84,6 +131,7 @@ export default async function KidsStoryPage({
       : null,
     datePublished: (post.published_at as string | null) ?? null,
     inLanguage: langCode(post.language as string | null),
+    image: coverUrl,
   });
 
   return (
@@ -97,14 +145,13 @@ export default async function KidsStoryPage({
             title: post.title as string,
             content: post.content as string,
             language: (post.language as string) ?? "en",
+            category: post.category as string | null,
             categoryName: cat ? (lang === "ur" ? cat.name_ur : cat.name_en) : null,
             authorName: author
               ? ((author.display_name as string | null) ?? (author.username as string))
               : null,
-            cover:
-              ((post as { post_images?: { storage_path: string; alt_text: string | null }[] | null })
-                .post_images?.[0] as { storage_path: string; alt_text: string | null } | undefined) ??
-              null,
+            cover,
+            related,
           }}
           labels={{
             backToStories: dict.kids.allStories,

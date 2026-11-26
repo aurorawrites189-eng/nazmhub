@@ -31,6 +31,8 @@ export interface ArticleJsonLdInput {
   authorName?: string | null;
   datePublished?: string | null;
   inLanguage?: string;
+  /** Cover image URL — Google's Article rich result requires an image. */
+  image?: string | null;
 }
 
 /** Minimal valid Article structured data for a story/episode page. */
@@ -54,6 +56,9 @@ export function articleJsonLd(input: ArticleJsonLdInput): Record<string, unknown
   }
   if (input.datePublished) {
     jsonLd.datePublished = input.datePublished;
+  }
+  if (input.image) {
+    jsonLd.image = input.image;
   }
   return jsonLd;
 }

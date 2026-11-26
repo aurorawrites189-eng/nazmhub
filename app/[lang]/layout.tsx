@@ -207,10 +207,32 @@ export default async function LangLayout({
   const lang: Locale = params.lang;
   const dict = await getDictionary(lang);
 
+  // WebSite structured data on the homepage only, so Google gets an
+  // explicit sitename / bilingual signal beyond the OG tags.
+  const hdrs = await headers();
+  const cleanPath = hdrs.get("x-nazmhub-path") || "/";
+  const websiteJsonLd =
+    cleanPath === "/"
+      ? {
+          "@context": "https://schema.org",
+          "@type": "WebSite",
+          name: SITE.name,
+          alternateName: SITE.nameUrdu,
+          url: SITE.url.replace(/\/$/, ""),
+          inLanguage: ["en", "ur"],
+        }
+      : null;
+
   return (
     <html lang={lang} dir={localeDirections[lang]} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
+        {websiteJsonLd && (
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}
+          />
+        )}
       </head>
       <body className="flex min-h-screen flex-col">
         <LanguageProvider locale={lang} dict={dict}>

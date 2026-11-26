@@ -11,6 +11,7 @@
  * via POST /api/posts/[id]/views — see that route for inflation caveats.
  */
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { getDictionary } from "@/lib/i18n/get-dictionary";
@@ -36,17 +37,48 @@ async function loadPost(id: string) {
 
 export async function generateMetadata({ params: _params }: PageParams): Promise<Metadata> {
   const params = await _params;
-  const { post } = await loadPost(params.id);
+  const { supabase, post } = await loadPost(params.id);
   if (!post) return { title: "Story" };
-  const title = post.title ?? "Story";
+  const baseTitle = post.title ?? "Story";
+  // Category + language suffix so twins and categories are distinguishable
+  // in search results (a bare post title says nothing about either).
+  const langName = langCode(post.language) === "ur" ? "Urdu" : "English";
+  const [{ data: cat }, { data: imgs }] = await Promise.all([
+    post.category
+      ? supabase.from("categories").select("name_en").eq("slug", post.category).maybeSingle()
+      : Promise.resolve({ data: null }),
+    supabase
+      .from("post_images")
+      .select("storage_path")
+      .eq("post_id", post.id)
+      .order("created_at")
+      .limit(1),
+  ]);
+  const catName = (cat as { name_en: string } | null)?.name_en ?? null;
+  let title = baseTitle;
+  if (post.is_kids_approved && catName) {
+    title = `${baseTitle} — ${catName} Story for Kids in ${langName}`;
+  } else if (catName) {
+    title = `${baseTitle} — ${catName}`;
+  }
+  const coverPath = (imgs as { storage_path: string }[] | null)?.[0]?.storage_path ?? null;
+  const coverUrl = coverPath
+    ? supabase.storage.from("post-images").getPublicUrl(coverPath).data.publicUrl
+    : null;
   // Per-page description from the story itself (was the generic
   // "Read this story on NazmHub." for every post).
   const description = excerpt(post.content);
+  const images = coverUrl ? [{ url: coverUrl }] : undefined;
   return {
     title,
     description,
-    openGraph: { type: "article", title, description },
-    twitter: { card: "summary_large_image", title, description },
+    openGraph: { type: "article", title, description, ...(images ? { images } : {}) },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      ...(coverUrl ? { images: [coverUrl] } : {}),
+    },
   };
 }
 
@@ -114,7 +146,23 @@ export default async function PostReaderPage({ params: _params }: PageParams) {
     authorName: author?.display_name ?? author?.username ?? null,
     datePublished: post.published_at ?? post.created_at ?? null,
     inLanguage: langCode(post.language),
+    image: imageUrls[0]?.url ?? null,
   });
+
+  // Related stories in the same category + language, for readers and crawlers.
+  let related: { id: string; title: string; language: string }[] = [];
+  if (post.category) {
+    const { data: relatedRows } = await supabase
+      .from("posts")
+      .select("id, title, language")
+      .eq("status", "published")
+      .eq("category", post.category)
+      .eq("language", post.language)
+      .neq("id", post.id)
+      .order("published_at", { ascending: false })
+      .limit(3);
+    related = (relatedRows ?? []) as { id: string; title: string; language: string }[];
+  }
 
   return (
     <>
@@ -222,6 +270,27 @@ export default async function PostReaderPage({ params: _params }: PageParams) {
         </span>
       </div>
       {!user && <p className="mt-2 text-sm text-neutral-500">{dict.reader.signInToInteract}</p>}
+
+      {related.length > 0 && (
+        <section className="mt-10">
+          <h2 className="text-xl font-bold">
+            {lang === "ur" ? "مزید کہانیاں" : "More stories"}
+          </h2>
+          <ul className="mt-3 space-y-2">
+            {related.map((r) => (
+              <li key={r.id}>
+                <Link
+                  href={`/posts/${r.id}`}
+                  lang={r.language}
+                  className="font-medium text-emerald-700 hover:underline dark:text-emerald-400"
+                >
+                  {r.title}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       <CommentSection
         postId={post.id}

@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
@@ -5,6 +6,7 @@ import { getDictionary } from "@/lib/i18n/get-dictionary";
 import { isLocale } from "@/lib/i18n/config";
 import { Button } from "@/components/ui/Button";
 import { publicStorageUrl } from "@/lib/storage";
+import { excerpt } from "@/lib/seo";
 
 interface EpisodeRow {
   id: string;
@@ -18,6 +20,54 @@ interface EpisodeRow {
  * Series detail: /[lang]/series/[seriesId]
  * Episode list + author tools.
  */
+
+// Per-series title + description so the 17 serial hubs are distinguishable
+// in search results (they previously all shared the generic section title).
+export async function generateMetadata({
+  params: _params,
+}: {
+  params: Promise<{ lang: string; seriesId: string }>;
+}): Promise<Metadata> {
+  const params = await _params;
+  const supabase = await createClient();
+  const { data: s } = await supabase
+    .from("series")
+    .select("id, title, description, language, cover_url")
+    .eq("id", params.seriesId)
+    .maybeSingle();
+  if (!s) return { title: "Cliffhangers — Serial Story" };
+  const series = s as {
+    title: string;
+    description: string | null;
+    language: string;
+    cover_url: string | null;
+  };
+  const langName = series.language === "ur" ? "Urdu" : "English";
+  const title = `${series.title} — Cliffhangers Serial Story in ${langName}`;
+  const description = series.description
+    ? excerpt(series.description, 150)
+    : `Read ${series.title}, a ${langName} serial story on NazmHub — one episode at a time, free to read.`;
+  const cover =
+    series.cover_url && series.cover_url.startsWith("http") ? series.cover_url : null;
+  const images = cover ? [{ url: cover }] : undefined;
+  return {
+    title,
+    description,
+    openGraph: {
+      type: "article",
+      title,
+      description,
+      ...(images ? { images } : {}),
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      ...(cover ? { images: [cover] } : {}),
+    },
+  };
+}
+
 export default async function SeriesDetailPage({
   params: _params,
 }: {
