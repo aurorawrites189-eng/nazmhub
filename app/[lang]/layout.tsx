@@ -150,6 +150,13 @@ export async function generateMetadata({
     description,
     alternates: {
       canonical: canonicalUrl,
+      languages: {
+        // Clean-URL decision (Nov 26, 2026): one URL per page serves both
+        // languages (language lives in a cookie, not the URL), so there is
+        // no separate Urdu URL for per-language hreflang. x-default marks
+        // this single URL as the default version for all languages.
+        "x-default": canonicalUrl,
+      },
     },
     openGraph: {
       type: "website",
