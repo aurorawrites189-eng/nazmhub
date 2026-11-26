@@ -40,7 +40,7 @@ export function KidsStoryCard({
   const titleSize = { s: "text-xl", m: "text-2xl", l: "text-3xl" }[fontSize];
   const bodySize = { s: "text-base", m: "text-lg", l: "text-xl" }[fontSize];
 
-  const href = `/${lang}/kids/story/${story.id}`;
+  const href = `/kids/story/${story.id}`;
 
   return (
     <article
@@ -60,10 +60,13 @@ export function KidsStoryCard({
         </Link>
       )}
       <div className="flex flex-1 flex-col gap-3 p-6">
-        {story.categoryName && (
-          <span className="w-fit rounded-full bg-white/80 px-4 py-1 text-sm font-bold text-neutral-700 dark:bg-neutral-900/60 dark:text-neutral-200">
+        {story.categoryName && story.category && (
+          <Link
+            href={`/kids/${story.category}`}
+            className="w-fit rounded-full bg-white/80 px-4 py-1 text-sm font-bold text-neutral-700 transition hover:bg-white dark:bg-neutral-900/60 dark:text-neutral-200 dark:hover:bg-neutral-900"
+          >
             {story.categoryName}
-          </span>
+          </Link>
         )}
         <Link href={href}>
           <h2 className={`${titleSize} font-extrabold leading-snug text-neutral-900 dark:text-white`}>

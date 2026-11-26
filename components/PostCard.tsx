@@ -36,7 +36,7 @@ export function PostCard({
   post: PostCardPost;
   labels: PostCardLabels;
 }) {
-  const href = `/${lang}/posts/${post.id}`;
+  const href = `/posts/${post.id}`;
   const authorName = post.author?.display_name || post.author?.username;
   const date = post.published_at
     ? new Date(post.published_at).toLocaleDateString(lang === "ur" ? "ur-PK" : "en-US", {
@@ -64,10 +64,13 @@ export function PostCard({
         </Link>
       )}
       <div className="flex flex-1 flex-col gap-2 p-5">
-        {post.categoryName && (
-          <span className="w-fit rounded-full bg-emerald-100 px-3 py-1 text-xs font-medium text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300">
+        {post.categoryName && post.category && (
+          <Link
+            href={`/feed?category=${post.category}`}
+            className="w-fit rounded-full bg-emerald-100 px-3 py-1 text-xs font-medium text-emerald-800 transition hover:bg-emerald-200 dark:bg-emerald-900/40 dark:text-emerald-300 dark:hover:bg-emerald-900/60"
+          >
             {post.categoryName}
-          </span>
+          </Link>
         )}
         <Link href={href}>
           <h2 className="text-lg font-bold leading-snug hover:text-emerald-700 dark:hover:text-emerald-400">

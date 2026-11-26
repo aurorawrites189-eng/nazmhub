@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getDictionary } from "@/lib/i18n/get-dictionary";
@@ -105,6 +106,20 @@ export default async function KidsPage({ params: _params }: { params: Promise<{ 
             {dict.kids.safeNotice}
           </p>
         </div>
+
+        {catList.length > 0 && (
+          <nav className="mb-8 flex flex-wrap justify-center gap-2" aria-label="Categories">
+            {catList.map((c) => (
+              <Link
+                key={c.slug}
+                href={`/kids/${c.slug}`}
+                className="rounded-full bg-white px-5 py-2 text-sm font-bold text-violet-700 shadow-sm transition hover:bg-violet-100 dark:bg-neutral-900 dark:text-violet-300 dark:hover:bg-neutral-800"
+              >
+                {lang === "ur" ? c.name_ur : c.name_en}
+              </Link>
+            ))}
+          </nav>
+        )}
 
         <KidsExplorer
           lang={lang}

@@ -44,10 +44,10 @@ export default async function HomePage({ params: _params }: { params: Promise<{ 
           {dict.hero.subtitle}
         </p>
         <div className="flex flex-wrap items-center justify-center gap-3">
-          <Link href={`/${lang}/signup`}>
+          <Link href="/signup">
             <Button className="px-6 py-3 text-base">{dict.hero.ctaWrite}</Button>
           </Link>
-          <Link href={`/${lang}/kids`}>
+          <Link href="/kids">
             <Button variant="secondary" className="px-6 py-3 text-base">
               {dict.hero.ctaRead}
             </Button>
