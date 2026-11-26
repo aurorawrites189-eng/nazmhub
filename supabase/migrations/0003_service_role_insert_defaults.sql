@@ -1,5 +1,5 @@
 -- ============================================================================
--- Qissa — migration 0003: service_role exemption for insert-side defaults
+-- NazmHub — migration 0003: service_role exemption for insert-side defaults
 --
 -- Phase 3 (0002) added an `auth.role() = 'service_role'` exemption to the
 -- UPDATE-side guard functions (protect_profile_fields,

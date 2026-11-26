@@ -1,5 +1,5 @@
 -- ============================================================================
--- Qissa — Phase 1 database schema
+-- NazmHub — Phase 1 database schema
 -- Apply with:  supabase db push        (or paste into the SQL editor)
 -- File:        supabase/migrations/0001_schema.sql
 -- ============================================================================

@@ -1,4 +1,4 @@
-# Qissa — Phase 2 Notes (core writing, Kids' Story World, dashboards)
+# NazmHub — Phase 2 Notes (core writing, Kids' Story World, dashboards)
 
 Phase 2 builds on the Phase 1 scaffold (auth, RLS, i18n, storage buckets).
 All code is real and wired to Supabase; there are no stubs.
@@ -61,7 +61,7 @@ Shared helpers: `lib/api/respond.ts` (`requireUser`, `requireAdult`, `rateLimitO
   `/[lang]/posts/[id]` (Phase 3 reader).
 - `/[lang]/kids` — extended Kids' Story World: playful gradient + big rounded
   cards, category chips (`is_kids` categories), search box, S/M/L font-size
-  toggle persisted in `localStorage` (`qissa-kids-font`), "continue reading"
+  toggle persisted in `localStorage` (`nazmhub-kids-font`), "continue reading"
   shelf from `reading_history`.
 - `/[lang]/kids/story/[id]` — large-type reader with font-size toggle,
   language/category badges, and a Report button (inserts into `reports`

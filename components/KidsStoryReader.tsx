@@ -8,7 +8,7 @@ import { KidsReportButton } from "./KidsReportButton";
 import { parseDialogueContent } from "@/lib/kids-dialogue";
 import { publicStorageUrl } from "@/lib/storage";
 
-const FONT_KEY = "qissa-kids-font";
+const FONT_KEY = "nazmhub-kids-font";
 
 export interface ReaderStory {
   id: string;

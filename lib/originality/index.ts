@@ -5,12 +5,12 @@
  * SCOPE — READ THIS BEFORE EXTENDING
  * ============================================================================
  * This checker compares a post ONLY against other posts already published
- * in Qissa's own database (same language). It does NOT check the public
+ * in NazmHub's own database (same language). It does NOT check the public
  * internet: true web-wide plagiarism detection requires a paid API
  * (Copyscape, Turnitin, GPTZero-style services, …) and a crawl budget.
  * Never tell users their work was "checked against the internet" — the
  * notification copy and admin UI both say "compared with stories published
- * on Qissa".
+ * on NazmHub".
  * ============================================================================
  *
  * Thresholds (tunable constants below):
@@ -68,8 +68,8 @@ export interface OriginalityMatch {
 }
 
 export interface OriginalityEvidence {
-  /** "qissa-internal-v1": compared only with Qissa's own published posts. */
-  checker: "qissa-internal-v1";
+  /** "nazmhub-internal-v1": compared only with NazmHub's own published posts. */
+  checker: "nazmhub-internal-v1";
   score: number;
   thresholds: { possibleDuplication: number; strongEvidence: number };
   corpusSize: number;
@@ -146,7 +146,7 @@ export async function runOriginalityCheck(postId: string): Promise<OriginalityCh
   const status = decideStatus(score);
 
   const evidence: OriginalityEvidence = {
-    checker: "qissa-internal-v1",
+    checker: "nazmhub-internal-v1",
     score,
     thresholds: {
       possibleDuplication: THRESHOLD_POSSIBLE_DUPLICATION,
@@ -206,7 +206,7 @@ export async function runOriginalityCheck(postId: string): Promise<OriginalityCh
       userId: post.author_id,
       postId: post.id,
       type: "plagiarism",
-      evidence: { checker: "qissa-internal-v1", score, matches: matches.slice(0, 5) },
+      evidence: { checker: "nazmhub-internal-v1", score, matches: matches.slice(0, 5) },
     });
     await notify(admin, post.author_id, "originality_withheld", {
       postId: post.id,

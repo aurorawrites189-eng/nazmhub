@@ -6,7 +6,7 @@
  * ============================================================================
  * A strike is NEVER issued on an automated score alone. recordViolation()
  * inserts a violation with status 'confirmed' — "confirmed" here means a
- * human moderator confirmed it, OR the qissa-internal-v1 originality
+ * human moderator confirmed it, OR the nazmhub-internal-v1 originality
  * checker found verbatim duplication above the strong-evidence threshold
  * (score > 0.40 Jaccard), which policy treats as confirmed plagiarism.
  * Borderline scores ('possible_duplication') only ever hold a post for

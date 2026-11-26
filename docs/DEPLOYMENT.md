@@ -1,7 +1,9 @@
 # Deployment — GitHub → Supabase → Cloudflare Pages
 
-**Production:** https://qissa-37g.pages.dev (Cloudflare Pages project `qissa`;
-`qissa.pages.dev` is owned by someone else, so Cloudflare assigned `qissa-37g`).
+**Production:** https://nazmhub.pages.dev (Cloudflare Pages project `nazmhub`).
+
+The old `qissa-37g.pages.dev` domain still answers and 301-redirects to
+`nazmhub.pages.dev` (see `middleware.ts`), so old links keep working.
 
 Target: a **free-tier** deployment. Nothing below has been run end-to-end
 against live services (see `docs/LIMITATIONS.md`); treat this as a
@@ -10,12 +12,12 @@ checklist, not a verified runbook.
 ## 1. Push to GitHub
 
 ```bash
-cd qissa-platform
+cd nazmhub-platform
 git init
 git add -A
-git commit -m "Qissa initial commit"
+git commit -m "NazmHub initial commit"
 git branch -M main
-git remote add origin https://github.com/<you>/qissa.git
+git remote add origin https://github.com/<you>/nazmhub.git
 git push -u origin main
 ```
 
@@ -77,7 +79,7 @@ Connect to Git → select the repo):
   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
   - `SUPABASE_SERVICE_ROLE_KEY` (mark as secret/encrypted)
   - `NEXT_PUBLIC_SITE_URL` = your Pages URL, e.g.
-    `https://qissa.pages.dev` (used for sitemap/robots and auth redirects)
+    `https://nazmhub.pages.dev` (used for sitemap/robots and auth redirects)
   - `INTERNAL_API_SECRET` (optional but recommended — required as
     `x-internal-secret` by `/api/internal/originality-check` when set)
 
@@ -123,4 +125,3 @@ that passes `next build` and fails in production.
   a single instance, but move to Redis/Upstash before any multi-instance
   or high-traffic setup.
 
-**Free branded URL:** https://nazmhub.pages.dev (Cloudflare Pages project `nazmhub`, created 2026-10-10; same repo, same env vars, SITE_URL points at nazmhub.pages.dev).

@@ -1,5 +1,5 @@
 -- ============================================================================
--- Qissa — storage buckets + policies
+-- NazmHub — storage buckets + policies
 -- Apply after the main schema:  supabase/migrations/0001_schema.sql
 -- NOTE: file_size_limit / allowed_mime_types columns require a recent
 -- Supabase Postgres version (present on Supabase Cloud).

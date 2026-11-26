@@ -7,7 +7,7 @@ import { KidsStoryCard, type KidsStory } from "./KidsStoryCard";
 import { EmptyState } from "./ui/EmptyState";
 import { Input } from "./ui/Input";
 
-const FONT_KEY = "qissa-kids-font";
+const FONT_KEY = "nazmhub-kids-font";
 
 export interface KidsExplorerCategory {
   slug: string;

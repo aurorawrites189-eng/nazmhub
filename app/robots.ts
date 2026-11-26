@@ -4,7 +4,7 @@ import { SITE } from "@/lib/site-config";
 export const runtime = "edge";
 
 /**
- * robots.txt for Qissa.
+ * robots.txt for NazmHub.
  *
  * Private areas (/admin, /dashboard, /write, /api) are disallowed for all
  * crawlers. The sitemap index is advertised for discoverability.

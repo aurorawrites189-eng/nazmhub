@@ -27,10 +27,10 @@ narrow. This file exists so nobody mistakes "builds cleanly" for
 ## Originality checking is internal-DB-only
 
 - `lib/originality` compares a post **only against stories already
-  published in Qissa's own database** (same language). It does **not**
+  published in NazmHub's own database** (same language). It does **not**
   scan the public internet. Real web-wide plagiarism detection needs a
   paid API (Copyscape, Turnitin, etc.). All user-facing copy says
-  "compared with stories published on Qissa" — never claim more.
+  "compared with stories published on NazmHub" — never claim more.
 - The check runs **synchronously** inside
   `POST /api/internal/originality-check`. On Cloudflare Workers this
   risks CPU-time limits on long corpora; move it to a queue/cron worker

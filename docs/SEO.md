@@ -10,7 +10,7 @@ clean technical SEO, publish genuinely useful content, and measure.
 ## What the build already does (technical SEO)
 
 - [x] `metadata` export on `app/[lang]/layout.tsx`: title template
-  (`%s · Qissa`), description from `SITE.tagline`.
+  (`%s · NazmHub`), description from `SITE.tagline`.
 - [x] `app/sitemap.ts`: static locale routes (`/`, `/feed`, `/kids`,
   …) for `en` + `ur`; commented hook showing exactly where to add
   dynamic `/posts/[id]` URLs once there's a live DB at request time.
@@ -27,7 +27,7 @@ advertises `http://localhost:3000`.
 
 ## Content strategy: own the Urdu long tail
 
-"Qissa" (قصہ — "story/tale") is brandable and memorable. The realistic
+"NazmHub" (نظم — "poem") is brandable and memorable. The realistic
 path to traffic is **low-competition Urdu long-tail queries** where almost
 nobody publishes well-formatted, original content:
 

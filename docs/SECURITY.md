@@ -68,7 +68,7 @@ penetration-tested or run against production traffic.
 
 - Rotate `SUPABASE_SERVICE_ROLE_KEY` if it ever appears in logs, error
   messages, or client bundles.
-- Delete (or rotate passwords for) the `demo.*@qissa.example` seed users
+- Delete (or rotate passwords for) the `demo.*@nazmhub.example` seed users
   before launch.
 - Set up Supabase usage alerts — a runaway script with the service key
   bypasses every RLS policy.

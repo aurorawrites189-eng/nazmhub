@@ -1,5 +1,5 @@
 /**
- * Seed stories for Qissa — 100% original sample content written for this
+ * Seed stories for NazmHub — 100% original sample content written for this
  * project. Used by scripts/seed.mjs to populate a fresh Supabase project
  * with demo posts.
  *

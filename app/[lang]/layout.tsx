@@ -174,7 +174,7 @@ export async function generateMetadata({
 
 // Applies the saved (or system-preferred) theme before first paint so the
 // page doesn't flash the wrong color scheme.
-const THEME_INIT_SCRIPT = `(function(){try{var t=localStorage.getItem('qissa-theme');if(t==='dark'||(!t&&window.matchMedia('(prefers-color-scheme: dark)').matches)){document.documentElement.classList.add('dark');}}catch(e){}})();`;
+const THEME_INIT_SCRIPT = `(function(){try{var t=localStorage.getItem('nazmhub-theme');if(t==='dark'||(!t&&window.matchMedia('(prefers-color-scheme: dark)').matches)){document.documentElement.classList.add('dark');}}catch(e){}})();`;
 
 // NOTE: there is intentionally no app/layout.tsx. Following the documented
 // Next.js i18n-routing pattern, app/[lang]/layout.tsx is the topmost layout

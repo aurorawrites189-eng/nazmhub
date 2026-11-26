@@ -1,6 +1,6 @@
-# Qissa (قصہ) — a multilingual writing community
+# NazmHub (نظم) — a multilingual writing community
 
-Qissa is a bilingual (Urdu + English) platform where people write, publish,
+NazmHub is a bilingual (Urdu + English) platform where people write, publish,
 and read stories, essays, and poetry — with a dedicated, age-gated
 **Kids' Story World** for young readers.
 
@@ -24,8 +24,8 @@ and read stories, essays, and poetry — with a dedicated, age-gated
 
 ```bash
 # 1. Clone and install
-git clone <your-repo-url> qissa-platform
-cd qissa-platform
+git clone <your-repo-url> nazmhub-platform
+cd nazmhub-platform
 npm install
 
 # 2. Point the project at your Supabase project
@@ -57,13 +57,13 @@ npm run dev
 
 ### What `scripts/seed.mjs` does
 
-- Creates `demo.author@qissa.example` (adult) and `demo.kid@qissa.example`
+- Creates `demo.author@nazmhub.example` (adult) and `demo.kid@nazmhub.example`
   (child) via `auth.admin.createUser`, with matching `profiles` rows.
 - Inserts the six original stories from `lib/seed/stories.ts` as published
   posts (kids' stories get `is_kids_approved = true`).
 - Idempotent: skips users/posts that already exist (matched by email and
   by author + title).
-- Demo password for both accounts: `QissaDemo123!` — change it or delete the
+- Demo password for both accounts: `NazmHubDemo123!` — change it or delete the
   demo users before going live.
 
 ## Project structure

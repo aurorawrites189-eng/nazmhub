@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-const THEME_KEY = "qissa-theme";
+const THEME_KEY = "nazmhub-theme";
 
 export function ThemeToggle() {
   const [dark, setDark] = useState(false);

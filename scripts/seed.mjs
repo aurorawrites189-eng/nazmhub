@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 /**
- * Qissa demo seed script.
+ * NazmHub demo seed script.
  *
  * Populates a fresh Supabase project with:
  *   1. Two demo users (created via auth.admin.createUser):
- *      - demo.author@qissa.example  (adult author of the seed stories)
- *      - demo.kid@qissa.example     (child reader, for testing Kids' World)
+ *      - demo.author@nazmhub.example  (adult author of the seed stories)
+ *      - demo.kid@nazmhub.example     (child reader, for testing Kids' World)
  *   2. Matching public.profiles rows.
  *   3. The six original sample stories from lib/seed/stories.ts, inserted
  *      as published posts (kids stories with is_kids_approved = true).
@@ -55,10 +55,10 @@ loadEnvFile(".env.local");
 loadEnvFile(".env");
 
 // --- config -----------------------------------------------------------------
-const DEMO_PASSWORD = "QissaDemo123!"; // demo only — delete these users or change passwords after seeding
+const DEMO_PASSWORD = "NazmHubDemo123!"; // demo only — delete these users or change passwords after seeding
 const DEMO_USERS = [
   {
-    email: "demo.author@qissa.example",
+    email: "demo.author@nazmhub.example",
     username: "demo_author",
     displayName: "Demo Author",
     bio: "Demo author account seeded with sample stories.",
@@ -67,7 +67,7 @@ const DEMO_USERS = [
     preferredLanguage: "en",
   },
   {
-    email: "demo.kid@qissa.example",
+    email: "demo.kid@nazmhub.example",
     username: "demo_kid",
     displayName: "Demo Kid",
     bio: "Demo child reader account for testing the Kids' Story World.",
@@ -133,7 +133,7 @@ async function main() {
     ids[spec.email] = id;
   }
 
-  const authorId = ids["demo.author@qissa.example"];
+  const authorId = ids["demo.author@nazmhub.example"];
 
   // 2. Sanity-check that the seed categories exist -----------------------------
   const needed = [...new Set(SEED_STORIES.map((s) => s.category))];
@@ -204,8 +204,8 @@ async function main() {
 
   console.log(`\nDone. posts inserted: ${inserted}, skipped (already seeded): ${skipped}`);
   console.log("Demo logins (password for both): " + DEMO_PASSWORD);
-  console.log("  author (adult): demo.author@qissa.example");
-  console.log("  kid reader:     demo.kid@qissa.example");
+  console.log("  author (adult): demo.author@nazmhub.example");
+  console.log("  kid reader:     demo.kid@nazmhub.example");
   console.log("Reminder: delete the demo users or change their passwords before going live.");
 }
 

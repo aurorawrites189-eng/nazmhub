@@ -1,5 +1,5 @@
 -- ============================================================================
--- Qissa — Phase 3: social extras (blocks), trigram search RPC, backend fixes
+-- NazmHub — Phase 3: social extras (blocks), trigram search RPC, backend fixes
 -- Apply with:  supabase db push        (or paste into the SQL editor)
 -- File:        supabase/migrations/0002_social.sql
 -- ============================================================================

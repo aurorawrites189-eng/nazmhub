@@ -1,4 +1,4 @@
-# Qissa — Phase 3 Notes (originality, moderation, social, admin)
+# NazmHub — Phase 3 Notes (originality, moderation, social, admin)
 
 ## What was built
 
@@ -25,11 +25,11 @@
 
 ### ⚠️ INTERNAL DATABASE ONLY — read before demoing
 The checker compares a post **only against stories already published in
-Qissa's own database** (same language). It does **not** check the public
+NazmHub's own database** (same language). It does **not** check the public
 internet. Web-wide plagiarism detection needs a paid API (Copyscape,
 Turnitin, etc.) and a crawl/indexing budget. All user-facing copy
 (notification templates, admin UI) says "compared with stories published
-on Qissa" — never claim internet-wide checking.
+on NazmHub" — never claim internet-wide checking.
 
 **Production hardening still needed:** the check runs synchronously in
 `POST /api/internal/originality-check`. Move it to a queue/cron worker

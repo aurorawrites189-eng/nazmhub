@@ -1,5 +1,5 @@
 -- ============================================================================
--- Qissa — seed data: story categories
+-- NazmHub — seed data: story categories
 -- Apply after the main schema:  supabase/migrations/0001_schema.sql
 -- Safe to re-run: ON CONFLICT (slug) DO NOTHING keeps existing rows intact.
 -- ============================================================================
