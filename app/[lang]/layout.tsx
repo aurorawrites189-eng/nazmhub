@@ -64,15 +64,27 @@ export async function generateMetadata({
   // snippet for all of them. The clean path comes from the
   // "x-nazmhub-path" header (see canonical comment above).
   const pageMeta: Record<string, { title: string; description: string }> = {
-    "/series": {
-      title: "Cliffhangers — Serial Stories in Urdu & English",
+    "/": {
+      title: "Free Kids Stories & Serials in Urdu & English",
       description:
-        "Read serial episode novels (Cliffhangers) in Urdu and English on NazmHub — one episode at a time, free to read.",
+        "Read free stories in Urdu and English — kids stories, daily serials and community writing. No paywall. New stories every day on NazmHub.",
+    },
+    "/series": {
+      title: "Cliffhangers: Urdu & English Serial Stories, 12 Episodes Each",
+      description:
+        "Episode-wise novels with a twist in every episode. 17 serials in Urdu and English — mystery, sci-fi, cricket drama and family stories, free to read.",
     },
     "/kids": {
-      title: "Kids Stories in Urdu & English",
+      title: "Kids Stories in Urdu & English — Free Moral & Bedtime Stories",
       description:
-        "Original kids' stories in Urdu and English on NazmHub — safe, reviewed stories for young readers.",
+        "Free kids stories in Urdu and English, reviewed for children. Moral stories, bedtime stories, kindness, adventure and more — read online, bilkul free.",
+    },
+    "/about": {
+      // Title here is overridden by the page's own generateMetadata
+      // (dict.about.metaTitle); this entry supplies the description.
+      title: "About NazmHub",
+      description:
+        "NazmHub is a free home for writers and readers in Urdu and English — stories, poetry, a reviewed Kids Corner and daily serials. Write. Read. Belong.",
     },
     "/write": {
       title: "Write a Story",
@@ -80,9 +92,9 @@ export async function generateMetadata({
         "Write and publish your own stories in Urdu or English on NazmHub.",
     },
     "/download": {
-      title: "Free Story Books — Download",
+      title: "Free Story Books PDF in Urdu & English — Download",
       description:
-        "Download free completed serial story books as PDFs from NazmHub.",
+        "Every finished NazmHub serial as one complete free book. Read online or download the PDF — 17 books in Urdu and English, no sign-up cost.",
     },
     "/login": {
       title: "Log In",
@@ -124,6 +136,11 @@ export async function generateMetadata({
     (locale === "ur"
       ? `${SITE.nameUrdu} — ${SITE.taglineUrdu} اردو اور انگریزی میں لکھنے اور پڑھنے کی کمیونٹی۔`
       : `${SITE.name} — ${SITE.tagline} A multilingual (Urdu + English) community for writers and readers.`);
+  // Auth and app-only pages must never be indexed.
+  const noIndexPaths = ["/login", "/signup", "/write", "/dashboard", "/admin", "/auth"];
+  const noIndex = noIndexPaths.some(
+    (p) => cleanPath === p || cleanPath.startsWith(`${p}/`),
+  );
   return {
     metadataBase: new URL(base),
     title: {
@@ -157,10 +174,9 @@ export async function generateMetadata({
       description,
       images: [`${base}/og-image.png`],
     },
-    robots: {
-      index: true,
-      follow: true,
-    },
+    robots: noIndex
+      ? { index: false, follow: false }
+      : { index: true, follow: true },
     icons: {
       icon: "/favicon.png",
       apple: "/favicon.png",
