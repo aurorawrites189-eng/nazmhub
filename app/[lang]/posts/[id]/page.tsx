@@ -12,7 +12,7 @@
  */
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { getDictionary } from "@/lib/i18n/get-dictionary";
 import { SITE, type Locale } from "@/lib/site-config";
@@ -29,10 +29,27 @@ interface PageParams {
   params: Promise<{ lang: string; id: string }>;
 }
 
-async function loadPost(id: string) {
+// Slugs are the public URL now (Nov 26, 2026 migration). A UUID still
+// resolves — and redirects to the slug URL below — so old links keep working.
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+async function loadPost(idOrSlug: string) {
   const supabase = await createClient();
-  const { data: post } = await supabase.from("posts").select("*").eq("id", id).maybeSingle();
-  return { supabase, post };
+  const { data: bySlug } = await supabase
+    .from("posts")
+    .select("*")
+    .eq("slug", idOrSlug)
+    .maybeSingle();
+  if (bySlug) return { supabase, post: bySlug };
+  // Only a UUID-shaped param can match the id column (a slug would make
+  // PostgREST reject the uuid comparison), so skip the second query otherwise.
+  if (!UUID_RE.test(idOrSlug)) return { supabase, post: null };
+  const { data: byId } = await supabase
+    .from("posts")
+    .select("*")
+    .eq("id", idOrSlug)
+    .maybeSingle();
+  return { supabase, post: byId };
 }
 
 export async function generateMetadata({ params: _params }: PageParams): Promise<Metadata> {
@@ -69,9 +86,12 @@ export async function generateMetadata({ params: _params }: PageParams): Promise
   // "Read this story on NazmHub." for every post).
   const description = excerpt(post.content);
   const images = coverUrl ? [{ url: coverUrl }] : undefined;
+  // Canonical is the slug URL, never the UUID form.
+  const base = SITE.url.replace(/\/$/, "");
   return {
     title,
     description,
+    alternates: { canonical: `${base}/posts/${post.slug ?? post.id}` },
     openGraph: { type: "article", title, description, ...(images ? { images } : {}) },
     twitter: {
       card: "summary_large_image",
@@ -88,6 +108,10 @@ export default async function PostReaderPage({ params: _params }: PageParams) {
   const dict = await getDictionary(lang);
   const { supabase, post } = await loadPost(params.id);
   if (!post) notFound();
+
+  // Old UUID URLs 301 to the keyword-slug URL (permanentRedirect is a 308,
+  // which search engines treat like a 301).
+  if (post.slug && params.id !== post.slug) permanentRedirect(`/posts/${post.slug}`);
 
   const [{ data: author }, { data: images }] = await Promise.all([
     supabase.from("public_profiles").select("id, username, display_name, avatar_url, bio").eq("id", post.author_id).maybeSingle(),
@@ -142,7 +166,7 @@ export default async function PostReaderPage({ params: _params }: PageParams) {
   const jsonLd = articleJsonLd({
     headline: post.title,
     description: excerpt(post.content),
-    url: `${base}/posts/${post.id}`,
+    url: `${base}/posts/${post.slug ?? post.id}`,
     authorName: author?.display_name ?? author?.username ?? null,
     datePublished: post.published_at ?? post.created_at ?? null,
     inLanguage: langCode(post.language),
@@ -150,18 +174,18 @@ export default async function PostReaderPage({ params: _params }: PageParams) {
   });
 
   // Related stories in the same category + language, for readers and crawlers.
-  let related: { id: string; title: string; language: string }[] = [];
+  let related: { id: string; slug: string | null; title: string; language: string }[] = [];
   if (post.category) {
     const { data: relatedRows } = await supabase
       .from("posts")
-      .select("id, title, language")
+      .select("id, slug, title, language")
       .eq("status", "published")
       .eq("category", post.category)
       .eq("language", post.language)
       .neq("id", post.id)
       .order("published_at", { ascending: false })
       .limit(3);
-    related = (relatedRows ?? []) as { id: string; title: string; language: string }[];
+    related = (relatedRows ?? []) as { id: string; slug: string | null; title: string; language: string }[];
   }
 
   return (
@@ -280,7 +304,7 @@ export default async function PostReaderPage({ params: _params }: PageParams) {
             {related.map((r) => (
               <li key={r.id}>
                 <Link
-                  href={`/posts/${r.id}`}
+                  href={`/posts/${r.slug ?? r.id}`}
                   lang={r.language}
                   className="font-medium text-emerald-700 hover:underline dark:text-emerald-400"
                 >

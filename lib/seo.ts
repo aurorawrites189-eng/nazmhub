@@ -26,7 +26,7 @@ export function langCode(language: string | null | undefined): "ur" | "en" {
 export interface ArticleJsonLdInput {
   headline: string;
   description: string;
-  /** Canonical URL of the story (its /posts/<id> home). */
+  /** Canonical URL of the story (its /posts/<slug> home). */
   url: string;
   authorName?: string | null;
   datePublished?: string | null;

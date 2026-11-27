@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getDictionary } from "@/lib/i18n/get-dictionary";
 import { isLocale } from "@/lib/i18n/config";
@@ -9,16 +9,25 @@ import { KidsStoryReader } from "@/components/KidsStoryReader";
 
 /** Large-type kids' story reader. Only kids-approved published stories. */
 
-async function loadKidsPost(id: string) {
+// Slugs are the public URL now (Nov 26, 2026 migration). A UUID still
+// resolves — and redirects to the slug URL below — so old links keep working.
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+async function loadKidsPost(idOrSlug: string) {
   const supabase = await createClient();
-  const { data: post } = await supabase
-    .from("posts")
-    .select("id, title, content, language, category, author_id, published_at, post_images(storage_path, alt_text)")
-    .eq("id", id)
-    .eq("status", "published")
-    .eq("is_kids_approved", true)
-    .maybeSingle();
-  return { supabase, post };
+  const query = () =>
+    supabase
+      .from("posts")
+      .select("id, slug, title, content, language, category, author_id, published_at, post_images(storage_path, alt_text)")
+      .eq("status", "published")
+      .eq("is_kids_approved", true);
+  const { data: bySlug } = await query().eq("slug", idOrSlug).maybeSingle();
+  if (bySlug) return { supabase, post: bySlug };
+  // Only a UUID-shaped param can match the id column (a slug would make
+  // PostgREST reject the uuid comparison), so skip the second query otherwise.
+  if (!UUID_RE.test(idOrSlug)) return { supabase, post: null };
+  const { data: byId } = await query().eq("id", idOrSlug).maybeSingle();
+  return { supabase, post: byId };
 }
 
 export async function generateMetadata({
@@ -55,9 +64,12 @@ export async function generateMetadata({
     ? supabase.storage.from("post-images").getPublicUrl(cover.storage_path).data.publicUrl
     : null;
   const images = coverUrl ? [{ url: coverUrl }] : undefined;
+  // Canonical is the story's /posts/<slug> home, not this reader URL.
+  const base = SITE.url.replace(/\/$/, "");
   return {
     title,
     description,
+    alternates: { canonical: `${base}/posts/${(post as { slug?: string | null }).slug ?? (post.id as string)}` },
     openGraph: { type: "article", title, description, ...(images ? { images } : {}) },
     twitter: {
       card: "summary_large_image",
@@ -84,6 +96,10 @@ export default async function KidsStoryPage({
   // isn't kids-approved, even if this filter were bypassed.
   if (!post) notFound();
 
+  // Old UUID reader URLs 301 to the slug form.
+  const postSlug = (post as { slug?: string | null }).slug ?? null;
+  if (postSlug && params.id !== postSlug) permanentRedirect(`/kids/story/${postSlug}`);
+
   const { data: categories } = await supabase
     .from("categories")
     .select("slug, name_en, name_ur")
@@ -102,7 +118,7 @@ export default async function KidsStoryPage({
   // of the reader.
   const { data: relatedRows } = await supabase
     .from("posts")
-    .select("id, title, language")
+    .select("id, slug, title, language")
     .eq("status", "published")
     .eq("is_kids_approved", true)
     .eq("category", post.category as string)
@@ -110,10 +126,10 @@ export default async function KidsStoryPage({
     .neq("id", post.id as string)
     .order("published_at", { ascending: false })
     .limit(2);
-  const related = (relatedRows ?? []) as { id: string; title: string; language: string }[];
+  const related = (relatedRows ?? []) as { id: string; slug: string | null; title: string; language: string }[];
 
   // Article structured data. The canonical home of a kids story is its
-  // /posts/<id> URL, so mainEntityOfPage points there.
+  // /posts/<slug> URL, so mainEntityOfPage points there.
   const base = SITE.url.replace(/\/$/, "");
   const cover = (
     (post as { post_images?: { storage_path: string; alt_text: string | null }[] | null })
@@ -125,7 +141,7 @@ export default async function KidsStoryPage({
   const jsonLd = articleJsonLd({
     headline: post.title as string,
     description: excerpt(post.content as string),
-    url: `${base}/posts/${post.id as string}`,
+    url: `${base}/posts/${postSlug ?? (post.id as string)}`,
     authorName: author
       ? ((author.display_name as string | null) ?? (author.username as string))
       : null,

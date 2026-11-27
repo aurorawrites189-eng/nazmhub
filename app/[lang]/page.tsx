@@ -15,17 +15,17 @@ export default async function HomePage({ params: _params }: { params: Promise<{ 
   // Latest stories — fetched server-side so the links are in the raw HTML
   // (Google discovers pages by following links; the client-side feed alone
   // leaves the homepage with zero story links).
-  let latest: { id: string; title: string; language: string }[] = [];
+  let latest: { id: string; slug: string | null; title: string; language: string }[] = [];
   try {
     const supabase = await createClient();
     const { data } = await supabase
       .from("posts")
-      .select("id, title, language")
+      .select("id, slug, title, language")
       .eq("status", "published")
       .eq("visibility", "public")
       .order("published_at", { ascending: false })
       .limit(12);
-    latest = (data ?? []) as { id: string; title: string; language: string }[];
+    latest = (data ?? []) as { id: string; slug: string | null; title: string; language: string }[];
   } catch {
     latest = [];
   }
@@ -74,7 +74,7 @@ export default async function HomePage({ params: _params }: { params: Promise<{ 
             {latest.map((post) => (
               <Link
                 key={post.id}
-                href={`/posts/${post.id}`}
+                href={`/posts/${post.slug ?? post.id}`}
                 lang={post.language === "ur" ? "ur" : "en"}
                 className="rounded-2xl border border-neutral-200 p-5 hover:border-emerald-600 dark:border-neutral-800 dark:hover:border-emerald-400"
               >

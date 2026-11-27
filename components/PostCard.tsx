@@ -9,6 +9,7 @@ export interface PostCardAuthor {
 
 export interface PostCardPost {
   id: string;
+  slug?: string | null;
   title: string;
   language: string;
   excerpt?: string;
@@ -36,7 +37,7 @@ export function PostCard({
   post: PostCardPost;
   labels: PostCardLabels;
 }) {
-  const href = `/posts/${post.id}`;
+  const href = `/posts/${post.slug ?? post.id}`;
   const authorName = post.author?.display_name || post.author?.username;
   const date = post.published_at
     ? new Date(post.published_at).toLocaleDateString(lang === "ur" ? "ur-PK" : "en-US", {

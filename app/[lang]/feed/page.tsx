@@ -53,7 +53,7 @@ export default async function FeedPage({
   let query = supabase
     .from("posts")
     .select(
-      "id, title, content, language, category, published_at, author_id, post_images(storage_path, alt_text)",
+      "id, slug, title, content, language, category, published_at, author_id, post_images(storage_path, alt_text)",
       { count: "exact" }
     )
     .eq("status", "published")
@@ -95,6 +95,7 @@ export default async function FeedPage({
     const content = p.content as string;
     return {
       id: p.id as string,
+      slug: (p.slug as string | null) ?? null,
       title: p.title as string,
       language: p.language as string,
       excerpt: content.slice(0, 240) + (content.length > 240 ? "…" : ""),

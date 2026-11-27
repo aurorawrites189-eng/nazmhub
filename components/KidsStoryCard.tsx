@@ -4,6 +4,7 @@ import type { KidsFontSize } from "./FontSizeToggle";
 
 export interface KidsStory {
   id: string;
+  slug?: string | null;
   title: string;
   content: string;
   language: string;
@@ -40,7 +41,7 @@ export function KidsStoryCard({
   const titleSize = { s: "text-xl", m: "text-2xl", l: "text-3xl" }[fontSize];
   const bodySize = { s: "text-base", m: "text-lg", l: "text-xl" }[fontSize];
 
-  const href = `/kids/story/${story.id}`;
+  const href = `/kids/story/${story.slug ?? story.id}`;
 
   return (
     <article

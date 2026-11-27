@@ -10,6 +10,7 @@ import { publicStorageUrl } from "@/lib/storage";
 
 interface EpisodeRow {
   id: string;
+  slug: string | null;
   title: string;
   content: string;
   episode_number: number | null;
@@ -38,7 +39,7 @@ async function loadEpisode(seriesId: string, epNum: number) {
   if (!s) return { supabase, series: null, episode: null };
   const { data: ep } = await supabase
     .from("posts")
-    .select("id, title, content, episode_number, author_id, published_at, language, post_images(storage_path)")
+    .select("id, slug, title, content, episode_number, author_id, published_at, language, post_images(storage_path)")
     .eq("series_id", seriesId)
     .eq("episode_number", epNum)
     .eq("status", "published")
@@ -65,9 +66,12 @@ export async function generateMetadata({
       ?.storage_path ?? null;
   const coverUrl = coverPath ? publicStorageUrl("post-images", coverPath) : null;
   const images = coverUrl ? [{ url: coverUrl }] : undefined;
+  // Canonical is the episode's /posts/<slug> home, not this episode URL.
+  const base = SITE.url.replace(/\/$/, "");
   return {
     title,
     description,
+    alternates: { canonical: `${base}/posts/${(episode as EpisodeRow).slug ?? episode.id}` },
     openGraph: { type: "article", title, description, ...(images ? { images } : {}) },
     twitter: {
       card: "summary_large_image",
@@ -121,12 +125,12 @@ export default async function EpisodePage({
     : { data: null };
 
   // Article structured data. The canonical home of an episode is its
-  // /posts/<id> URL, so mainEntityOfPage points there.
+  // /posts/<slug> URL, so mainEntityOfPage points there.
   const base = SITE.url.replace(/\/$/, "");
   const jsonLd = articleJsonLd({
     headline: episode.title,
     description: excerpt(episode.content),
-    url: `${base}/posts/${episode.id}`,
+    url: `${base}/posts/${episode.slug ?? episode.id}`,
     authorName: author
       ? ((author.display_name as string | null) ?? (author.username as string))
       : null,

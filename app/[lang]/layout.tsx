@@ -29,11 +29,12 @@ export async function generateMetadata({
   const hdrs = await headers();
   const cleanPath = hdrs.get("x-nazmhub-path") || "/";
   const pageUrl = cleanPath === "/" ? base : `${base}${cleanPath}`;
-  // Canonical strategy (Nov 21, 2026): /posts/<id> is the canonical home
-  // for every story. Duplicate views of the same story canonical to it so
-  // Google does not treat them as separate thin/duplicate pages:
-  //   /kids/story/<id> -> /posts/<id> (same uuid, string transform)
-  //   /series/<id>/<n> -> /posts/<episode post id> (DB lookup below)
+  // Canonical strategy (Nov 21, 2026; slugs Nov 26, 2026): /posts/<slug> is
+  // the canonical home for every story. Duplicate views of the same story
+  // canonical to it so Google does not treat them as separate thin/duplicate
+  // pages:
+  //   /kids/story/<id> -> /posts/<slug> (same story, string transform)
+  //   /series/<id>/<n> -> /posts/<episode slug> (DB lookup below)
   // Every other page keeps its self-referencing canonical (pageUrl).
   let canonicalUrl = pageUrl;
   const kidsMatch = cleanPath.match(/^\/kids\/story\/([^/]+)$/);
@@ -46,13 +47,13 @@ export async function generateMetadata({
         const supabase = await createClient();
         const { data: ep } = await supabase
           .from("posts")
-          .select("id")
+          .select("id, slug")
           .eq("series_id", epMatch[1])
           .eq("episode_number", Number(epMatch[2]))
           .eq("status", "published")
           .maybeSingle();
         if (ep && typeof ep.id === "string" && ep.id) {
-          canonicalUrl = `${base}/posts/${ep.id}`;
+          canonicalUrl = `${base}/posts/${(ep as { slug?: string | null }).slug ?? ep.id}`;
         }
       } catch {
         // Keep the self-referencing canonical on lookup failure.
@@ -110,7 +111,7 @@ export async function generateMetadata({
       description: "The latest stories and serial episodes published on NazmHub.",
     },
   };
-  // Dynamic pages (/series/<id>, /kids/story/<id>, /posts/<id>) get a
+  // Dynamic pages (/series/<id>, /kids/story/<id>, /posts/<slug>) get a
   // section-level title instead of the homepage title.
   const section = cleanPath.split("/").filter(Boolean)[0];
   const sectionMeta: Record<string, { title: string; description: string }> = {

@@ -20,7 +20,7 @@ export interface ReaderStory {
   authorName: string | null;
   cover: { storage_path: string; alt_text: string | null } | null;
   /** Two more stories in the same category + language, linked at the end. */
-  related: { id: string; title: string; language: string }[];
+  related: { id: string; slug?: string | null; title: string; language: string }[];
 }
 
 interface ReaderLabels {
@@ -221,7 +221,7 @@ export function KidsStoryReader({
             {story.related.map((r) => (
               <li key={r.id}>
                 <Link
-                  href={`/kids/story/${r.id}`}
+                  href={`/kids/story/${r.slug ?? r.id}`}
                   lang={r.language}
                   className="block rounded-2xl border-2 border-violet-200 bg-white p-4 font-bold text-neutral-900 transition hover:-translate-y-0.5 hover:shadow-md dark:border-violet-800/50 dark:bg-neutral-900 dark:text-white"
                 >

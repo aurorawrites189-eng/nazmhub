@@ -86,7 +86,7 @@ export function KidsExplorer({
             {continueReading.map((s) => (
               <Link
                 key={s.id}
-                href={`/kids/story/${s.id}`}
+                href={`/kids/story/${s.slug ?? s.id}`}
                 lang={s.language}
                 dir={s.language === "ur" ? "rtl" : "ltr"}
                 className="w-56 shrink-0 rounded-3xl border-2 border-violet-200 bg-violet-50 p-5 transition hover:-translate-y-1 hover:shadow-md dark:border-violet-800/50 dark:bg-violet-900/20"

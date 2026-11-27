@@ -10,6 +10,7 @@ import { SITE } from "@/lib/site-config";
 
 interface RawPost {
   id: string;
+  slug: string | null;
   title: string;
   content: string;
   language: string;
@@ -29,6 +30,7 @@ async function toKidsStories(
 ): Promise<KidsStory[]> {
   return posts.map((p) => ({
     id: p.id,
+    slug: p.slug ?? null,
     title: p.title,
     content: p.content,
     language: p.language,
@@ -148,7 +150,7 @@ export default async function KidsCategoryPage({
 
   const { data: posts } = await supabase
     .from("posts")
-    .select("id, title, content, language, category, post_images(storage_path, alt_text)")
+    .select("id, slug, title, content, language, category, post_images(storage_path, alt_text)")
     .eq("status", "published")
     .eq("is_kids_approved", true)
     .eq("category", category.slug)
